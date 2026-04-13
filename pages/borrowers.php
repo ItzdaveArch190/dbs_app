@@ -1,11 +1,59 @@
+<?php
+  require_once('../classes/database.php');
+  $con = new database();
+
+  $allusers = $con->ViewBorrowerUser();
+
+  $borrowerCreateUser='null';
+  $borrowerCreateMessage = '';
+
+  if(isset($_POST['add_borrower'])){
+    // 1. Collect 
+    $firstname = $_POST['borrower_firstname'];
+    $lastname = $_POST['borrower_lastname'];
+    $Username = $_POST['borrower_email'];
+    $phone_Number = $_POST['borrower_phone_number'];
+    $borrower_member_since = $_POST['borrower_member_since'];
+    $temp_password = $_POST['temp_password'];
+    $isActive = $_POST['is_active'];
+
+    // 2. Hashed the password
+    $User_password_hash = password_hash($temp_password,PASSWORD_DEFAULT);
+
+    // 3. Insert into Users table and get a new user_id
+    $user_ID = $con->insertUser($Username, $User_password_hash, $isActive);
+  }
+
+
+
+  if(isset($_POST['addbtn'])){
+      $HouseNumber =  $_POST['ba_house_number'];
+      $Street = $_POST['ba_street'];
+      $Barangay =  $_POST['ba_barangay'];
+      $City = $_POST['ba_city'];
+      $Province = $_POST['ba_province'];
+      $postalCode = $_POST['ba_postal_code'];
+      $isPrimary =  $_POST['is_primary'];
+      $borrower_ID = $_POST['borrower_id'];
+
+      $borrower = $con->AddBorrower($borrower_ID,$HouseNumber,$Street,$Barangay,$City,$Province,$postalCode,$isPrimary);
+
+  }
+  
+?>
+
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Borrowers — Admin</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"> -->
+  <link rel="stylesheet" href="../bootstrap-5.3.3-dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/style.css">
+
+  <link rel="stylesheet" href="../sweetalert/dist/sweetalert2.css">
+  
 </head>
 <body>
 <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
@@ -86,7 +134,6 @@
             </tbody>
           </table>
         </div>
-
         <div class="small-muted mt-2">
           Rule reminder: each borrower must have exactly one account (BorrowerUser 1-to-1 mapping).
         </div>
@@ -139,7 +186,7 @@
                 </div>
               </div>
 
-              <button class="btn btn-primary w-100 mt-3" type="submit">Create Borrower Account</button>
+              <button name="add_borrower" class="btn btn-primary w-100 mt-3" type="submit">Create Borrower Account</button>
             </form>
           </div>
         </div>
@@ -154,11 +201,12 @@
                 <label class="form-label">Borrower</label>
                 <select class="form-select" name="borrower_id" required>
                   <option value="">Select borrower</option>
-                  <option value="1">Juan Dela Cruz</option>
-                  <option value="2">Maria Santos</option>
-                  <option value="3">Mark Reyes</option>
-                  <option value="4">Ana Bautista</option>
-                  <option value="6">Grace Mendoza</option>
+                  
+                    <?php
+                      foreach($allusers as $borrower){
+                        echo '<option value="'.$borrower['Borrower_ID'].'">'.$borrower['Borrower_firstname'].' '.$borrower['Borrower_lastname'].'</option>';
+                      }
+                    ?>
                 </select>
               </div>
               <div class="col-6">
@@ -193,7 +241,7 @@
                 </select>
               </div>
               <div class="col-12">
-                <button class="btn btn-outline-primary w-100" type="submit">Add Address</button>
+                <button name="addbtn" class="btn btn-outline-primary w-100" type="submit">Add Address</button>
               </div>
             </form>
           </div>
@@ -232,6 +280,30 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+<script src ="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+<script src="../sweetalert/dist/sweetalert2.min.js"></script>
+
+<script>
+  const createStatus = <?php echo json_encode($borrowerCreateUser)?>;
+  const createMessage = <?php echo json_encode($borrowerCreateMessage)?>;
+
+  if(createStatus === 'success') {
+    swal.fire({
+      icon:'error',
+      title: 'Error',
+      text: createMessage,
+      confirmButtonText: 'OK'
+    });
+  } else if(createStatus ===  'error'){
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text:createMessage,
+      confirmButtonText: 'OK'
+    });
+  }
+
+</script>
 </body>
 </html>
