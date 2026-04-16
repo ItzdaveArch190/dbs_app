@@ -2,10 +2,16 @@
   require_once('../classes/database.php');
   $con = new database();
 
+  $Country = "Philippines";
+
   $allusers = $con->ViewBorrowerUser();
 
-  $borrowerCreateUser='null';
+  $borrowerCreateUser = 'null';
   $borrowerCreateMessage = '';
+
+  $borrowerAddress = 'null';
+  $borrowerAddressMessage = '';
+
 
   if(isset($_POST['add_borrower'])){
     // 1. Collect 
@@ -19,9 +25,19 @@
 
     // 2. Hashed the password
     $User_password_hash = password_hash($temp_password,PASSWORD_DEFAULT);
+    try{
+        $user_ID = $con->insertUser($Username, $User_password_hash, $isActive,$borrower_member_since);
+        $borrower = $con->Add_Borrower($firstname, $lastname, $Username, $phone_Number, $borrower_member_since, $isActive);
+        $BorrowerUser = $con->AddBorrowerUser($user_ID, $borrower);
 
-    // 3. Insert into Users table and get a new user_id
-    $user_ID = $con->insertUser($Username, $User_password_hash, $isActive);
+        $borrowercreateStatus = 'success';
+        $borrowerCreateMessage = 'Borrower Successfully Added.';
+
+    } catch(Exception $e) {
+      echo "Error: " . $e->getMessage();
+    }
+    
+  
   }
 
 
@@ -36,8 +52,17 @@
       $isPrimary =  $_POST['is_primary'];
       $borrower_ID = $_POST['borrower_id'];
 
-      $borrower = $con->AddBorrower($borrower_ID,$HouseNumber,$Street,$Barangay,$City,$Province,$postalCode,$isPrimary);
+      try{
+          $borrower = $con->Add_Borrower_Address($borrower_ID,$HouseNumber,$Street,$Barangay,$City,$Province,$postalCode,$isPrimary,$Country);
 
+          $borrowerAddress = 'success';
+          $borrowerAddressMessage = 'Borrower Address Successfully Added.';
+      } catch(Exception $e){
+        echo "Error: " . $e->getMessage();
+      }
+
+      
+      
   }
   
 ?>
@@ -49,9 +74,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Borrowers — Admin</title>
   <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"> -->
-  <link rel="stylesheet" href="../bootstrap-5.3.3-dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../bootstrap-5.3.3-dist/css/bootstrap.css">
   <link rel="stylesheet" href="../assets/css/style.css">
-
   <link rel="stylesheet" href="../sweetalert/dist/sweetalert2.css">
   
 </head>
@@ -289,9 +313,9 @@
   const createMessage = <?php echo json_encode($borrowerCreateMessage)?>;
 
   if(createStatus === 'success') {
-    swal.fire({
-      icon:'error',
-      title: 'Error',
+    Swal.fire({
+      icon:'success',
+      title: 'Success',
       text: createMessage,
       confirmButtonText: 'OK'
     });
@@ -303,7 +327,31 @@
       confirmButtonText: 'OK'
     });
   }
+  
 
 </script>
+
+<script src ="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
+<script src="../sweetalert/dist/sweetalert2.min.js"></script>
+  <script>
+    const borrowerAddressStatus = <?php echo json_encode($borrowerAddress)?>;
+    const borrowerMessage = <?php echo json_encode($borrowerAddressMessage)?>;
+
+    if(borrowerAddressStatus === 'success'){
+      Swal.fire({
+        icon:'success',
+        title: 'Success',
+        text: borrowerMessage,
+        confirmButtonText:'OK'
+      });
+    } else if(borrowerAddresStatus === 'error') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: borrowerMessage,
+        confirmButtonText:'OK'
+      });
+    }
+  </script>
 </body>
 </html>
