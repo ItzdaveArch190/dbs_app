@@ -1,10 +1,8 @@
 <?php
+    
 
     class database{
-
     
-    
-
     function opencon(): PDO {
         return new PDO(
             'mysql:host=localhost;
@@ -150,6 +148,7 @@
         $con = $this->opencon();
         $query = $con->query('SELECT * FROM genre');
         return $query->fetchAll(PDO::FETCH_ASSOC);
+       
     }
 
 
@@ -189,6 +188,46 @@
         }
     }
 
+    //add author
+    function addAuthor($authorFirstname, $authorLastname, $authorbirthyear, $authornationality){
+        $con = $this->opencon();
+        try{
+            $con->beginTransaction();
+            $stmt = $con->prepare('INSERT INTO author(author.author_firstname,
+                                            author.author_lastname,
+                                            author.author_birthyear,
+                                            author.author_nationality) 
+                                            VALUES(?,?,?,?)');
+            $stmt->execute([$authorFirstname, $authorLastname, $authorbirthyear, $authornationality]);
+            $insertAuthor = $con->lastInsertId();
+            $con->commit();
+            return $insertAuthor;
+        } catch(PDOEXCEPTION $e){
+            if($con->inTransaction()){
+                $con->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    function insertGenre($genre){
+        $con = $this->opencon();
+    try{
+            $con->beginTransaction();
+            $stmt = $con->prepare('INSERT INTO genre(genre_name) VALUES(?)');
+            $stmt->execute([$genre]);
+            $insertGenre = $con->lastInsertId();
+            $con->commit();
+            return $insertGenre;
+        }catch(PDOEXCEPTION $e){
+            if($con->inTransaction()){
+                $con->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+
     function viewBook()
     {
         $con = $this->opencon();
@@ -206,6 +245,67 @@
         GROUP BY 1
         ")->fetchAll();
     }
+
+
+    // Not working..still on the process
+    function UpdateBook($book_id,$title, $ISBN, $publication_year, $Publisher){
+        $con = $this->opencon();
+        try{
+            $con->beginTransaction();
+            $stmt = $con->prepare("UPDATE book 
+                                   SET  Book_Title = ?, 
+                                        Book_ISBN = ?, 
+                                        Book_publicationyear = ?,
+                                        Book_Publisher = ?
+                                    WHERE Book_ID = ?");
+
+            $stmt->execute([$book_id,$title, $ISBN,$publication_year ,$Publisher]);
+            $con->commit();
+            return true;
+        } catch(PDOEXCEPTION $e){
+            if($con->inTransaction()) {
+                $con->rollBack();
+            }
+            throw $e;
+        }   
+    }
+
+    function recentLoanbyProcessor(){
+        $con = $this->opencon();
+        return $con->query("
+            SELECT
+                loan.loan_ID,
+                CONCAT(borrowers.Borrower_firstname, ' ',borrowers.Borrower_lastname) AS borrower_fullname,
+                loan.loan_status,
+                loan.loan_date,
+                users.Username AS processed_by
+            FROM loan
+                JOIN borrowers ON loan.Borrower_ID = borrowers.Borrower_ID
+                JOIN loan_item ON loan.loan_ID = loan_item.loan_ID
+                JOIN users ON loan.processed_by = users.User_ID
+                WHERE users.User_ID = 1;"
+
+
+        )->fetchAll();
+    }
+
+    function countBook(){
+        $con =  $this->opencon();
+        return $con->query("
+            SELECT COUNT(*) FROM book")->fetchColumn();
+    }
+
+    function countAuthor(){
+        $con = $this->opencon();
+        return $con->query("SELECT COUNT(*) FROM author")->fetchColumn();
+    }
+
+    function countGenre(){
+        $con =  $this->opencon();
+        return $con->query("SELECT COUNT(*) FROM genre")->fetchColumn();
+    }
+
+    
 
     
 }

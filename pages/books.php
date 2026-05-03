@@ -53,6 +53,27 @@
 
       $insertBookGenre = $con->insertBookGenre($book_id, $genre_id);
     }
+
+      //try lang
+      /*
+    if(isset($_POST['edit-btn'])){ 
+      $title = $Viewbook['Book_Title'];
+      $ISBN = $Viewbook['Book_ISBN'];
+      $Publisher = $Viewbook['Book_Publisher'];
+      $con->editBookDetails($title, $ISBN, $Publisher);
+      }
+      */
+      
+    
+    if(isset($_POST['update_book'])) {
+        $id = $_POST['Book__ID'];
+        $title = $_POST['Book__Title'];
+        $isbn = $_POST['book__ISBN'];
+        $publicationyear = $_POST['book__PublicationYear'];
+        $publisher = $_POST['book_publisher'];
+
+        $updateBook = $con->UpdateBook($id, $title, $isbn, $publicationyear, $publisher);
+    }
 ?>
 
 
@@ -76,12 +97,14 @@
     </button>
     <div id="navBooks" class="collapse navbar-collapse">
       <ul class="navbar-nav me-auto gap-lg-1">
-        <li class="nav-item"><a class="nav-link" href="admin-dashboard.html">Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link active" href="books.html">Books</a></li>
-        <li class="nav-item"><a class="nav-link" href="borrowers.html">Borrowers</a></li>
-        <li class="nav-item"><a class="nav-link" href="checkout.html">Checkout</a></li>
-        <li class="nav-item"><a class="nav-link" href="return.html">Return</a></li>
-        <li class="nav-item"><a class="nav-link" href="catalog.html">Catalog</a></li>
+        <li class="nav-item"><a class="nav-link" href="admin-dashboard.php">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="books.php">Books</a></li>
+          <li class="nav-item"><a class="nav-link" href="books.php">Books</a></li>
+        <li class="nav-item"><a class="nav-link active" href="authors-genres.html">Authors &amp; Genres</a></li>
+        <li class="nav-item"><a class="nav-link" href="borrowers.php">Borrowers</a></li>
+        <li class="nav-item"><a class="nav-link" href="checkout.php">Checkout</a></li>
+        <li class="nav-item"><a class="nav-link" href="return.php">Return</a></li>
+        <li class="nav-item"><a class="nav-link" href="catalog.php">Catalog</a></li>
       </ul>
       <div class="d-flex align-items-center gap-2">
         <span class="badge badge-soft">Role: ADMIN</span>
@@ -197,11 +220,20 @@
                     echo'<td>'.$vb['Available_Copies'].'</td>';
                     echo '<td><span class="badge text-bg-success">2</span></td>';
                     echo'<td class="text-end">';
-                    echo '<button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal">Edit</button>';
+
+                    echo '<button name="edit-btn" class="btn btn-sm btn-outline-primary" 
+                    data-bs-toggle = "modal" 
+                    data-bs-target = "#editBookModal"
+                    data-bs-book-id = " '.$vb['Book_ID'].' "
+                    data-bs-book-title = "'.$vb['Book_Title'].'"
+                    data-bs-book-isbn = "'.$vb['Book_ISBN'].'"
+                    data-bs-book-publicationyear = "'.$vb['Book_publicationyear'].'"
+                    data-bs-book-publisher = "'.$vb['Book_Publisher'].'" type="submit">Edit</button>';
                     echo '<button class="btn btn-sm btn-outline-danger">Delete</button>';
                     echo'</td>';
                     echo'</tr>';
                   }
+                    
               ?>
                 
               
@@ -291,6 +323,7 @@
 <div class="modal fade" id="editBookModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
+
       <div class="modal-header">
         <h5 class="modal-title">Edit Book</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -298,24 +331,40 @@
       <div class="modal-body">
         <!-- Later in PHP: load existing values -->
         <form action="#" method="POST">
+
+          <div class="mb-3">
+            <label class="form-label">Book ID</label>
+            <input class="form-control" name="Book_ID" id="edit_book_ID"  readonly>
+          </div>
+
           <div class="mb-3">
             <label class="form-label">Title</label>
-            <input class="form-control" value="Noli Me Tangere">
+            <input class="form-control" name="Book_Title" id="edit_book_title">
           </div>
+
           <div class="mb-3">
             <label class="form-label">ISBN</label>
-            <input class="form-control" value="9789710810736">
+            <input class="form-control" name="Book_ISBN" id="edit_book_isbn">
           </div>
+
+          <div class="mb-3">
+            <label class="form-label">Publication Year</label>
+            <input class="form-control" type="number" min="1500" max="2100" name="book_Publication_Year" id="edit_book_year">
+          </div>
+
           <div class="mb-3">
             <label class="form-label">Publisher</label>
-            <input class="form-control" value="National Book Store">
+            <input class="form-control" name="book_publisher" id="editBookPublisher">
           </div>
-          <button class="btn btn-primary w-100" type="button">Save Changes</button>
+
+          <button class="btn btn-primary w-100" name="update_book" type="submit">Save Changes</button>
+
         </form>
       </div>
     </div>
   </div>
 </div>
+
 
 <!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>-->
 <script src ="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
@@ -367,5 +416,21 @@
 
 </script>
 
+<script>
+    const editBookModal = document.getElementById('editBookModal');
+
+    
+    editBookModal.addEventListener('show.bs.modal', function(event) {
+      const btn = event.relatedTarget;
+      if(!btn) return;
+
+        document.getElementById('edit_book_ID').value = btn.getAttribute('data-bs-book-id') || '';
+        document.getElementById('edit_book_title').value = btn.getAttribute('data-bs-book-title') || '';
+        document.getElementById('edit_book_isbn').value = btn.getAttribute('data-bs-book-isbn') || '';
+        document.getElementById('edit_book_year').value = btn.getAttribute('data-bs-book-publicationyear') || '';
+        document.getElementById('edit_book_publisher').value = btn.getAttribute('data-bs-book-publisher') || '';
+    });
+
+</script>
 </body>
 </html>

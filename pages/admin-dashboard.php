@@ -1,3 +1,12 @@
+<?php
+  require_once('../classes/database.php');
+  $con =  new database();
+
+  $bookcount = $con->countBook();
+?>
+
+
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -43,7 +52,7 @@
           <div class="col-6 col-md-3">
             <div class="border rounded p-3 bg-white">
               <div class="small-muted">Total Books</div>
-              <div class="fs-4 fw-semibold">5</div>
+              <div class="fs-4 fw-semibold"><?php echo $bookcount;?></div>
             </div>
           </div>
           <div class="col-6 col-md-3">
@@ -128,5 +137,6 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../sweetalert/dist/sweetalert2.min.js"></script>
 </body>
 </html>

@@ -58,7 +58,7 @@
           $borrowerAddress = 'success';
           $borrowerAddressMessage = 'Borrower Address Successfully Added.';
       } catch(Exception $e){
-        echo "Error: " . $e->getMessage();
+        echo 'Error: ' . $e->getMessage();
       }
 
       
